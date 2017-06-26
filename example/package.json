@@ -8,6 +8,7 @@
 	},
 	"dependencies": {
 		"react": "16.0.0-alpha.12",
+		"react-native-nordic-dfu": "file:../",
 		"react-native": "0.45.1",
 		"react-native-ble-manager": "^5.1.1"
 	},

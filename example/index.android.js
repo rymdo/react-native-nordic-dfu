@@ -6,9 +6,11 @@
 
 import React, { Component } from "react";
 import { AppRegistry, StyleSheet, Text, View } from "react-native";
+import NordicDFU from "react-native-nordic-dfu";
 
 export default class NordicDFUExample extends Component {
   render() {
+    console.log(NordicDFU);
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>

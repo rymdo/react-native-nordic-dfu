@@ -1,7 +1,10 @@
 
 package com.pilloxa;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import com.facebook.react.bridge.*;
@@ -15,7 +18,6 @@ public class RNNordicDfuModule extends ReactContextBaseJavaModule implements Lif
     private static final String name = "RNNordicDfu";
     public static final String LOG_TAG = name;
     private final ReactApplicationContext reactContext;
-    int mFileType = DfuService.TYPE_AUTO;
     private Promise mPromise = null;
 
     public RNNordicDfuModule(ReactApplicationContext reactContext) {
@@ -27,17 +29,12 @@ public class RNNordicDfuModule extends ReactContextBaseJavaModule implements Lif
     @ReactMethod
     public void startDFU(String address, String name, String filePath, Promise promise) {
         mPromise = promise;
-        Log.d(getName(), "File: " + filePath);
         final DfuServiceInitiator starter = new DfuServiceInitiator(address)
-                .setDeviceName(name)
                 .setKeepBond(false);
-// If you want to have experimental buttonless DFU feature supported call additionally:
+        if (name != null) {
+            starter.setDeviceName(name);
+        }
         starter.setUnsafeExperimentalButtonlessServiceInSecureDfuEnabled(true);
-// but be aware of this: https://devzone.nordicsemi.com/question/100609/sdk-12-bootloader-erased-after-programming/
-// and other issues related to this experimental service.
-
-// Init packet is required by Bootloader/DFU from SDK 7.0+ if HEX or BIN file is given above.
-// In case of a ZIP file, the init packet (a DAT file) must be included inside the ZIP file.
         starter.setZip(filePath);
         final DfuServiceController controller = starter.start(this.reactContext, DfuService.class);
     }
@@ -119,8 +116,20 @@ public class RNNordicDfuModule extends ReactContextBaseJavaModule implements Lif
                 WritableMap map = new WritableNativeMap();
                 map.putString("deviceAddress", deviceAddress);
                 mPromise.resolve(map);
+                mPromise = null;
             }
             sendStateUpdate("DFU_COMPLETED", deviceAddress);
+
+
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                    // if this activity is still open and upload process was completed, cancel the notification
+                    final NotificationManager manager = (NotificationManager) reactContext.getSystemService(Context.NOTIFICATION_SERVICE);
+                    manager.cancel(DfuService.NOTIFICATION_ID);
+                }
+            }, 200);
 
         }
 
@@ -128,7 +137,8 @@ public class RNNordicDfuModule extends ReactContextBaseJavaModule implements Lif
         public void onDfuAborted(final String deviceAddress) {
             sendStateUpdate("DFU_ABORTED", deviceAddress);
             if (mPromise != null) {
-                mPromise.reject("2", "DFU Aborted");
+                mPromise.reject("2", "DFU ABORTED");
+                mPromise = null;
             }
 
         }
@@ -151,6 +161,7 @@ public class RNNordicDfuModule extends ReactContextBaseJavaModule implements Lif
             sendStateUpdate("DFU_FAILED", deviceAddress);
             if (mPromise != null) {
                 mPromise.reject(Integer.toString(error), message);
+                mPromise = null;
             }
         }
     };

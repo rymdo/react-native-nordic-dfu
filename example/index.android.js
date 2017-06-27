@@ -1,9 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
 import React, { Component } from "react";
 import {
   AppRegistry,
@@ -47,11 +41,11 @@ export default class NordicDFUExample extends Component {
 
   startDFU() {
     console.log("STarting DFU");
-    NordicDFU.startDFU(
-      "C3:53:A0:31:2F:14",
-      "Pilloxa Board",
-      this.state.imagefile
-    )
+    NordicDFU.startDFU({
+      deviceAddress: "C3:53:A0:31:2F:14",
+      name: "Pilloxa Board",
+      filePath: this.state.imagefile
+    })
       .then(res => console.log("TRANSFERDONE:", res))
       .catch(console.log);
   }

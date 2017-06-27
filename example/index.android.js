@@ -25,11 +25,16 @@ export default class NordicDFUExample extends Component {
     super(props);
     this.state = {
       imagefile: false,
-      dfuState: "Not started"
+      dfuState: "Not started",
+      progress: 0
     };
   }
 
   componentDidMount() {
+    DFUEmitter.addListener("DFUProgress", progress => {
+      console.log("DFU progress:", progress);
+      this.setState({ progress: progress.percent });
+    });
     DFUEmitter.addListener("DFUStateChanged", state => {
       console.log("DFU STATE:", state);
       this.setState({ dfuState: state.state });
@@ -58,10 +63,9 @@ export default class NordicDFUExample extends Component {
         <Text style={styles.welcome}>
           {this.state.dfuState}
         </Text>
-        {/*<Image
-          style={{ width: 50, height: 50 }}
-          source={{ uri: "file://" + this.state.imagefile }}
-        />*/}
+        <Text style={styles.welcome}>
+          {this.state.progress + " %"}
+        </Text>
         <TouchableHighlight
           style={{ padding: 10, backgroundColor: "grey" }}
           onPress={this.startDFU.bind(this)}

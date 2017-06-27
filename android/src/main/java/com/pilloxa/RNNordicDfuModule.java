@@ -11,6 +11,7 @@ import no.nordicsemi.android.dfu.*;
 public class RNNordicDfuModule extends ReactContextBaseJavaModule implements LifecycleEventListener {
 
     private final String dfuStateEvent = "DFUStateChanged";
+    private final String progressEvent = "DFUProgress";
     private static final String name = "RNNordicDfu";
     public static final String LOG_TAG = name;
     private final ReactApplicationContext reactContext;
@@ -53,10 +54,11 @@ public class RNNordicDfuModule extends ReactContextBaseJavaModule implements Lif
                 .emit(eventName, params);
     }
 
-    private void sendStateUpdate(String state) {
+    private void sendStateUpdate(String state, String deviceAddress) {
         WritableMap map = new WritableNativeMap();
-        Log.d(LOG_TAG, "State: "+state);
+        Log.d(LOG_TAG, "State: " + state);
         map.putString("state", state);
+        map.putString("deviceAddress", deviceAddress);
         sendEvent(dfuStateEvent, map);
     }
 
@@ -78,8 +80,6 @@ public class RNNordicDfuModule extends ReactContextBaseJavaModule implements Lif
     }
 
 
-
-
     /**
      * The progress listener receives events from the DFU Service.
      * If is registered in onCreate() and unregistered in onDestroy() so methods here may also be called
@@ -89,78 +89,69 @@ public class RNNordicDfuModule extends ReactContextBaseJavaModule implements Lif
      */
     private final DfuProgressListener mDfuProgressListener = new DfuProgressListenerAdapter() {
         @Override
-        public void onDeviceConnecting(final String deviceAddress){
-            sendStateUpdate("CONNECTING");
+        public void onDeviceConnecting(final String deviceAddress) {
+            sendStateUpdate("CONNECTING", deviceAddress);
         }
 
         @Override
         public void onDfuProcessStarting(final String deviceAddress) {
-            sendStateUpdate("DFU_PROCESS_STARTING");
+            sendStateUpdate("DFU_PROCESS_STARTING", deviceAddress);
         }
 
         @Override
         public void onEnablingDfuMode(final String deviceAddress) {
-            sendStateUpdate("ENABLING_DFU_MODE");
+            sendStateUpdate("ENABLING_DFU_MODE", deviceAddress);
         }
 
         @Override
         public void onFirmwareValidating(final String deviceAddress) {
-            sendStateUpdate("FIRMWARE_VALIDATING");
+            sendStateUpdate("FIRMWARE_VALIDATING", deviceAddress);
         }
 
         @Override
         public void onDeviceDisconnecting(final String deviceAddress) {
-            sendStateUpdate("DEVICE_DISCONNECTING");
+            sendStateUpdate("DEVICE_DISCONNECTING", deviceAddress);
         }
 
         @Override
         public void onDfuCompleted(final String deviceAddress) {
             if (mPromise != null) {
                 WritableMap map = new WritableNativeMap();
-                map.putString("deviceAddress",deviceAddress);
+                map.putString("deviceAddress", deviceAddress);
                 mPromise.resolve(map);
             }
-            sendStateUpdate("DFU_COMPLETED");
+            sendStateUpdate("DFU_COMPLETED", deviceAddress);
 
         }
 
         @Override
         public void onDfuAborted(final String deviceAddress) {
-            sendStateUpdate("DFU_ABORTED");
+            sendStateUpdate("DFU_ABORTED", deviceAddress);
             if (mPromise != null) {
                 mPromise.reject("2", "DFU Aborted");
             }
 
         }
 
-//        @Override
-//        public void onProgressChanged(final String deviceAddress, final int percent, final float speed, final float avgSpeed, final int currentPart, final int partsTotal) {
-//            mProgressBar.setIndeterminate(false);
-//            mProgressBar.setProgress(percent);
-//            mTextPercentage.setText(getString(R.string.dfu_uploading_percentage, percent));
-//            if (partsTotal > 1)
-//                mTextUploading.setText(getString(R.string.dfu_status_uploading_part, currentPart, partsTotal));
-//            else
-//                mTextUploading.setText(R.string.dfu_status_uploading);
-//        }
-//
-//        @Override
-//        public void onError(final String deviceAddress, final int error, final int errorType, final String message) {
-//            sendStateUpdate("DFU_FAILED");
-//            if (mResumed) {
-//                showErrorMessage(message);
-//
-//                // We have to wait a bit before canceling notification. This is called before DfuService creates the last notification.
-//                new Handler().postDelayed(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        // if this activity is still open and upload process was completed, cancel the notification
-//                        final NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//                        manager.cancel(DfuService.NOTIFICATION_ID);
-//                    }
-//                }, 200);
-//            } else {
-//                mDfuError = message;
-//            }
-        };
-    }
+        @Override
+        public void onProgressChanged(final String deviceAddress, final int percent, final float speed, final float avgSpeed, final int currentPart, final int partsTotal) {
+            WritableMap map = new WritableNativeMap();
+            map.putString("deviceAddress", deviceAddress);
+            map.putInt("percent", percent);
+            map.putDouble("speed", speed);
+            map.putDouble("avgSpeed", avgSpeed);
+            map.putInt("currentPart", currentPart);
+            map.putInt("partsTotal", partsTotal);
+            sendEvent(progressEvent, map);
+
+        }
+
+        @Override
+        public void onError(final String deviceAddress, final int error, final int errorType, final String message) {
+            sendStateUpdate("DFU_FAILED", deviceAddress);
+            if (mPromise != null) {
+                mPromise.reject(Integer.toString(error), message);
+            }
+        }
+    };
+}

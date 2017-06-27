@@ -15,17 +15,25 @@ const FB = RNFetchBlob.config({
 export default class NordicDFUExample extends Component {
   constructor(props) {
     super(props);
-    this.state = { imagefile: "start" };
+    this.state = { imagefile: false };
   }
   componentDidMount() {
-    FB.fetch("GET", "http://localhost:1234/app-zip").then(res => {
+    FB.fetch("GET", "http://localhost:1234/app.zip").then(res => {
       console.log("file saved to", res.path());
       this.setState({ imagefile: res.path() });
     });
   }
   render() {
     console.log("FILE:" + this.state.imagefile);
-    NordicDFU.startDFU("SS", console.log);
+    if (this.state.imagefile) {
+      NordicDFU.startDFU(
+        "C3:53:A0:31:2F:14",
+        "Pilloxa Board",
+        // "http://localhost:1234/app.zip",
+        this.state.imagefile,
+        console.log
+      );
+    }
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>

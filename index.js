@@ -1,6 +1,8 @@
-// HELLO! MAN!
-import { NativeModules } from 'react-native';
+import { NativeModules, NativeEventEmitter } from "react-native";
 
 const { RNNordicDfu } = NativeModules;
+const NordicDFU = RNNordicDfu;
 
-export default RNNordicDfu;
+const DFUEmitter = new NativeEventEmitter(RNNordicDfu);
+
+export { NordicDFU, DFUEmitter };

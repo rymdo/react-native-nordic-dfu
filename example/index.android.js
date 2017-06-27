@@ -5,51 +5,69 @@
  */
 
 import React, { Component } from "react";
-import { AppRegistry, StyleSheet, Text, View, Image } from "react-native";
-import NordicDFU from "react-native-nordic-dfu";
+import {
+  AppRegistry,
+  TouchableHighlight,
+  StyleSheet,
+  Text,
+  View,
+  Image
+} from "react-native";
+import { NordicDFU, DFUEmitter } from "react-native-nordic-dfu";
 import RNFetchBlob from "react-native-fetch-blob";
 const FB = RNFetchBlob.config({
   fileCache: true,
   appendExt: "zip"
 });
+
 export default class NordicDFUExample extends Component {
   constructor(props) {
     super(props);
-    this.state = { imagefile: false };
+    this.state = {
+      imagefile: false,
+      dfuState: "Not started"
+    };
   }
+
   componentDidMount() {
+    DFUEmitter.addListener("DFUStateChanged", state => {
+      console.log("DFU STATE:", state);
+      this.setState({ dfuState: state.state });
+    });
     FB.fetch("GET", "http://localhost:1234/app.zip").then(res => {
       console.log("file saved to", res.path());
       this.setState({ imagefile: res.path() });
     });
   }
+
+  startDFU() {
+    console.log("STarting DFU");
+    NordicDFU.startDFU(
+      "C3:53:A0:31:2F:14",
+      "Pilloxa Board",
+      this.state.imagefile
+    )
+      .then(res => console.log("TRANSFERDONE:", res))
+      .catch(console.log);
+  }
+
   render() {
     console.log("FILE:" + this.state.imagefile);
-    if (this.state.imagefile) {
-      NordicDFU.startDFU(
-        "C3:53:A0:31:2F:14",
-        "Pilloxa Board",
-        // "http://localhost:1234/app.zip",
-        this.state.imagefile,
-        console.log
-      );
-    }
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>
-          Welcome to React Native Broder!
+          {this.state.dfuState}
         </Text>
         {/*<Image
           style={{ width: 50, height: 50 }}
           source={{ uri: "file://" + this.state.imagefile }}
         />*/}
-        <Text style={styles.instructions}>
-          To get started, edit index.android.js
-        </Text>
-        <Text style={styles.instructions}>
-          Double tap R on your keyboard to reload,{"\n"}
-          Shake or press menu button for dev menu
-        </Text>
+        <TouchableHighlight
+          style={{ padding: 10, backgroundColor: "grey" }}
+          onPress={this.startDFU.bind(this)}
+        >
+          <Text style={{ color: "white" }}>Start DFU</Text>
+        </TouchableHighlight>
       </View>
     );
   }

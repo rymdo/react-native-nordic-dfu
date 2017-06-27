@@ -1,9 +1,11 @@
 
 {
   "name": "react-native-nordic-dfu",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
+  "url": "https://github.com/Pilloxa/react-native-nordic-dfu",
+  "repository": "Pilloxa/react-native-nordic-dfu",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -827,6 +827,10 @@ balanced-match@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
 
+base-64@0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/base-64/-/base-64-0.1.0.tgz#780a99c84e7d600260361511c4877613bf24f6bb"
+
 base64-js@0.0.8:
   version "0.0.8"
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-0.0.8.tgz#1101e9544f4a76b1bc3b26d452ca96d7a35e7978"
@@ -1608,7 +1612,7 @@ glob-parent@^2.0.0:
   dependencies:
     is-glob "^2.0.0"
 
-glob@^7.0.3, glob@^7.0.5, glob@^7.1.1:
+glob@^7.0.3, glob@^7.0.5, glob@^7.0.6, glob@^7.1.1:
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.2.tgz#c19c9df9a028702d678612384a6552404c636d15"
   dependencies:
@@ -2997,6 +3001,13 @@ react-devtools-core@^2.1.8:
 react-native-ble-manager@^5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/react-native-ble-manager/-/react-native-ble-manager-5.1.1.tgz#38483688f5878c67dd6e97bc5597daf7a30a6061"
+
+react-native-fetch-blob@^0.10.6:
+  version "0.10.6"
+  resolved "https://registry.yarnpkg.com/react-native-fetch-blob/-/react-native-fetch-blob-0.10.6.tgz#a009c99bbf4f3681ecc991d25398688dc38f93fc"
+  dependencies:
+    base-64 "0.1.0"
+    glob "^7.0.6"
 
 "react-native-nordic-dfu@file:../":
   version "1.0.0"

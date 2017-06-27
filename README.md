@@ -3,7 +3,7 @@
 
 ## Getting started
 
-`$ npm install react-native-nordic-dfu --save`
+`$ yarn add react-native-nordic-dfu
 
 ### Mostly automatic installation
 

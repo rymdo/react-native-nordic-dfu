@@ -3,6 +3,8 @@
 #import <CoreBluetooth/CoreBluetooth.h>
 
 static CBCentralManager * (^getCentralManager)();
+static void (^onDFUComplete)();
+static void (^onDFUError)();
 
 @implementation RNNordicDfu
 
@@ -82,8 +84,8 @@ NSString * const DFUStateChangedEvent = @"DFUStateChanged";
       return @"DFUErrorExtendedInitPacketRequired";
     case DFUErrorReceivingNotificationFailed:
       return @"DFUErrorReceivingNotificationFailed";
-    case DFUErrorRemoteBootlonlessDFUSuccess:
-      return @"DFUErrorRemoteBootlonlessDFUSuccess";
+    case DFUErrorRemoteButtonlessDFUSuccess:
+      return @"DFUErrorRemoteButtonlessDFUSuccess";
     case DFUErrorRemoteLegacyDFUInvalidState:
       return @"DFUErrorRemoteLegacyDFUInvalidState";
     case DFUErrorRemoteLegacyDFUNotSupported:
@@ -108,20 +110,20 @@ NSString * const DFUStateChangedEvent = @"DFUStateChanged";
       return @"DFUErrorRemoteSecureDFUSignatureMismatch";
     case DFUErrorRemoteSecureDFUOpCodeNotSupported:
       return @"DFUErrorRemoteSecureDFUOpCodeNotSupported";
-    case DFUErrorRemoteBootlonlessDFUOperationFailed:
-      return @"DFUErrorRemoteBootlonlessDFUOperationFailed";
+    case DFUErrorRemoteButtonlessDFUOperationFailed:
+      return @"DFUErrorRemoteButtonlessDFUOperationFailed";
     case DFUErrorRemoteSecureDFUInsufficientResources:
       return @"DFUErrorRemoteSecureDFUInsufficientResources";
     case DFUErrorRemoteSecureDFUOperationNotpermitted:
       return @"DFUErrorRemoteSecureDFUOperationNotpermitted";
-    case DFUErrorRemoteBootlonlessDFUOpCodeNotSupported:
-      return @"DFUErrorRemoteBootlonlessDFUOpCodeNotSupported";
-    case DFUErrorRemoteExperimentalBootlonlessDFUSuccess:
-      return @"DFUErrorRemoteExperimentalBootlonlessDFUSuccess";
-    case DFUErrorRemoteExperimentalBootlonlessDFUOperationFailed:
-      return @"DFUErrorRemoteExperimentalBootlonlessDFUOperationFailed";
-    case DFUErrorRemoteExperimentalBootlonlessDFUOpCodeNotSupported:
-      return @"DFUErrorRemoteExperimentalBootlonlessDFUOpCodeNotSupported";
+    case DFUErrorRemoteButtonlessDFUOpCodeNotSupported:
+      return @"DFUErrorRemoteButtonlessDFUOpCodeNotSupported";
+    case DFUErrorRemoteExperimentalButtonlessDFUSuccess:
+      return @"DFUErrorRemoteExperimentalButtonlessDFUSuccess";
+    case DFUErrorRemoteExperimentalButtonlessDFUOperationFailed:
+      return @"DFUErrorRemoteExperimentalButtonlessDFUOperationFailed";
+    case DFUErrorRemoteExperimentalButtonlessDFUOpCodeNotSupported:
+      return @"DFUErrorRemoteExperimentalButtonlessDFUOpCodeNotSupported";
     default:
       return @"UNKNOWN_ERROR";
   }
@@ -135,6 +137,9 @@ NSString * const DFUStateChangedEvent = @"DFUStateChanged";
   [self sendEventWithName:DFUStateChangedEvent body:evtBody];
 
   if (state == DFUStateCompleted) {
+    if (onDFUComplete) {
+      onDFUComplete();
+    }
     NSDictionary * resolveBody = @{@"deviceAddress": self.deviceAddress,};
 
     self.resolve(resolveBody);
@@ -144,6 +149,10 @@ NSString * const DFUStateChangedEvent = @"DFUStateChanged";
 - (void)   dfuError:(enum DFUError)error
 didOccurWithMessage:(NSString * _Nonnull)message
 {
+  if (onDFUError) {
+    onDFUError();
+  }
+
   NSDictionary * evtBody = @{@"deviceAddress": self.deviceAddress,
                              @"state": @"DFU_FAILED",};
 
@@ -226,6 +235,16 @@ RCT_EXPORT_METHOD(startDFU:(NSString *)deviceAddress
 + (void)setCentralManagerGetter:(CBCentralManager * (^)())getter
 {
   getCentralManager = getter;
+}
+
++ (void)setOnDFUComplete:(void (^)())onComplete
+{
+  onDFUComplete = onComplete;
+}
+
++ (void)setOnDFUError:(void (^)())onError
+{
+  onDFUError = onError;
 }
 
 @end
